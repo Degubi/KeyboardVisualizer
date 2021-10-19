@@ -1,0 +1,6 @@
+/.settings/
+/target/
+/app/
+.classpath
+.project
+settings.json
