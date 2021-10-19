@@ -1,5 +1,6 @@
 package visualizer;
 
+import java.util.*;
 import javax.swing.*;
 
 public final class NativeUtils {
@@ -14,8 +15,8 @@ public final class NativeUtils {
 
     public static final GlobalKeyboardInputListener INACTIVE_LISTENER = (a, b) -> {};
 
-    public static GlobalKeyboardInputListener keyDownListener = INACTIVE_LISTENER;
-    public static GlobalKeyboardInputListener keyUpListener = INACTIVE_LISTENER;
+    public static final ArrayList<GlobalKeyboardInputListener> keyDownListeners = new ArrayList<>();
+    public static final ArrayList<GlobalKeyboardInputListener> keyUpListeners = new ArrayList<>();
     public static GlobalKeyboardInputListener keyboardSelectionListener = INACTIVE_LISTENER;
 
     public static native void initializeNativeUtils();  // Steals caller thread, called only once in main
@@ -35,13 +36,19 @@ public final class NativeUtils {
     private static void onKeyboardKeyUp(int virtualKeyCode, long deviceHandle) {
         System.out.println("Keyboard button up interaction - device: " + deviceHandle + " - key: " + virtualKeyCode);
 
-        keyUpListener.keyStateChanged(virtualKeyCode, deviceHandle);
+        for(var keyUpListener : keyUpListeners) {
+            keyUpListener.keyStateChanged(virtualKeyCode, deviceHandle);
+        }
+
+        keyboardSelectionListener.keyStateChanged(virtualKeyCode, deviceHandle);
     }
 
     // Called by NativeUtils.c on 'WM_INPUT' event on type 'RIM_TYPEKEYBOARD' with 'WM_KEYDOWN' and 'WM_SYSKEYDOWN' events
     private static void onKeyboardKeyDown(int virtualKeyCode, long deviceHandle) {
         System.out.println("Keyboard button down interaction - device: " + deviceHandle + " - key: " + virtualKeyCode);
 
-        keyDownListener.keyStateChanged(virtualKeyCode, deviceHandle);
+        for(var keyDownListener : keyDownListeners) {
+            keyDownListener.keyStateChanged(virtualKeyCode, deviceHandle);
+        }
     }
 }

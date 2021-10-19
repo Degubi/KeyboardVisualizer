@@ -1,29 +1,38 @@
 package visualizer;
 
+import com.fasterxml.jackson.core.type.*;
 import com.fasterxml.jackson.databind.*;
 import java.io.*;
 import java.nio.file.*;
+import java.util.*;
+import visualizer.model.*;
 
 public final class Settings {
     private static final ObjectMapper json = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private static final String KEYBOARDS_SETTING = "keyboards";
 
-    public static int keyboardHelperXPosition;
-    public static int keyboardHelperYPosition;
-    public static int keyboardHelperWidth;
-    public static int keyboardHelperHeight;
+    public static final ArrayList<KeyboardView> keyboards;
 
     static {
         var settings = load();
 
-        keyboardHelperXPosition = getOrDefaultInt("keyboardHelperXPosition", 0, settings);
-        keyboardHelperYPosition = getOrDefaultInt("keyboardHelperYPosition", 0, settings);
-        keyboardHelperWidth = getOrDefaultInt("keyboardHelperWidth", 600, settings);
-        keyboardHelperHeight = getOrDefaultInt("keyboardHelperHeight", 400, settings);
+        keyboards = getKeyboards(settings);
     }
 
 
-    private static int getOrDefaultInt(String propName, int defaultValue, JsonNode settings) {
-        return settings.has(propName) ? settings.get(propName).asInt() : defaultValue;
+    @SuppressWarnings("resource")
+    private static ArrayList<KeyboardView> getKeyboards(JsonNode settings) {
+        var profs = settings.get(KEYBOARDS_SETTING);
+
+        if(profs == null) {
+            return new ArrayList<>();
+        }
+
+        try {
+            return json.readValue(json.treeAsTokens(profs), new TypeReference<ArrayList<KeyboardView>>() {});
+        } catch (IOException e) {
+            return new ArrayList<>();
+        }
     }
 
     private static JsonNode load() {
@@ -43,10 +52,7 @@ public final class Settings {
 
     public static void save() {
         var settings = json.createObjectNode()
-                           .put("keyboardHelperXPosition", keyboardHelperXPosition)
-                           .put("keyboardHelperYPosition", keyboardHelperYPosition)
-                           .put("keyboardHelperWidth", keyboardHelperWidth)
-                           .put("keyboardHelperHeight", keyboardHelperHeight);
+                           .set(KEYBOARDS_SETTING, json.convertValue(keyboards, JsonNode.class));
         try {
             Files.write(Path.of("./settings.json"), json.writeValueAsBytes(settings));
         } catch (IOException e) {

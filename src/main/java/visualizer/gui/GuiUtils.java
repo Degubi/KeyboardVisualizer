@@ -5,15 +5,13 @@ import java.awt.event.*;
 import java.util.concurrent.atomic.*;
 import javax.swing.*;
 import visualizer.*;
+import visualizer.model.*;
 
 public final class GuiUtils {
     public static final Image appIcon;
     public static final int screenWidth;
     public static final int screenHeight;
     public static final int CANCELED_KEYBOARD_HANDLE = 0;
-
-    private static JFrame keyboardHelperFrame;
-    public static KeyboardHelperScreen keyboardHelperScreen;
 
     static {
         var screenSize = Toolkit.getDefaultToolkit().getScreenSize();
@@ -49,7 +47,7 @@ public final class GuiUtils {
         return handle.get();
     }
 
-    public static void showKeyboardHelper(boolean isResizable) {
+    public static void showKeyboardHelper(boolean isResizable, KeyboardView keyboard) {
         var frame = new JFrame();
         var keyboardHelperPanel = new KeyboardHelperScreen();
 
@@ -58,7 +56,7 @@ public final class GuiUtils {
         frame.setResizable(false);
         frame.setBackground(isResizable ? new Color(128, 128, 128) : new Color(0, 0, 0, 0));
         frame.setContentPane(keyboardHelperPanel);
-        frame.setBounds(Settings.keyboardHelperXPosition, Settings.keyboardHelperYPosition, Settings.keyboardHelperWidth, Settings.keyboardHelperHeight);
+        frame.setBounds(keyboard.visualizerFrameXPosition, keyboard.visualizerFrameYPosition, keyboard.visualizerFrameWidth, keyboard.visualizerFrameHeight);
         frame.setType(JFrame.Type.UTILITY);
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         frame.setVisible(true);
@@ -67,22 +65,22 @@ public final class GuiUtils {
             NativeUtils.makeJFrameBehindClickable(frame);
         }
 
-        keyboardHelperFrame = frame;
-        keyboardHelperScreen = keyboardHelperPanel;
+        keyboard.helperFrame = frame;
+        keyboard.helperScreen = keyboardHelperPanel;
     }
 
-    public static boolean hideKeyboardHelper() {
-        if(keyboardHelperFrame != null) {
-            var helperFrameBounds = keyboardHelperFrame.getBounds();
+    public static boolean hideKeyboardHelper(KeyboardView keyboard) {
+        if(keyboard.helperFrame != null) {
+            var helperFrameBounds = keyboard.helperFrame.getBounds();
 
-            Settings.keyboardHelperXPosition = helperFrameBounds.x;
-            Settings.keyboardHelperYPosition = helperFrameBounds.y;
-            Settings.keyboardHelperWidth = helperFrameBounds.width;
-            Settings.keyboardHelperHeight = helperFrameBounds.height;
+            keyboard.visualizerFrameXPosition = helperFrameBounds.x;
+            keyboard.visualizerFrameYPosition = helperFrameBounds.y;
+            keyboard.visualizerFrameWidth = helperFrameBounds.width;
+            keyboard.visualizerFrameHeight = helperFrameBounds.height;
 
-            keyboardHelperFrame.dispose();
-            keyboardHelperFrame = null;
-            keyboardHelperScreen = null;
+            keyboard.helperFrame.dispose();
+            keyboard.helperFrame = null;
+            keyboard.helperScreen = null;
 
             return true;
         }
