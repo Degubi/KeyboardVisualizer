@@ -7,7 +7,8 @@ import visualizer.gui.*;
 
 public final class KeyboardView {
 
-    public final long handle;
+    public long handle;
+    public final String name;
     public int visualizerFrameXPosition;
     public int visualizerFrameYPosition;
     public int visualizerFrameWidth;
@@ -20,12 +21,14 @@ public final class KeyboardView {
 
     @JsonCreator
     public KeyboardView(@JsonProperty("handle") long handle,
+                        @JsonProperty("name") String name,
                         @JsonProperty("visualizerFrameXPosition") int visualizerFrameXPosition,
                         @JsonProperty("visualizerFrameYPosition") int visualizerFrameYPosition,
                         @JsonProperty("visualizerFrameWidth") int visualizerFrameWidth,
                         @JsonProperty("visualizerFrameHeight") int visualizerFrameHeight) {
 
         this.handle = handle;
+        this.name = name;
         this.visualizerFrameXPosition = visualizerFrameXPosition;
         this.visualizerFrameYPosition = visualizerFrameYPosition;
         this.visualizerFrameWidth = visualizerFrameWidth;

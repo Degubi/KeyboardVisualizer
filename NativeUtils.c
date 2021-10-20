@@ -5,6 +5,7 @@
 static JNIEnv* global_env = NULL;
 static jmethodID keyboardKeyUpHandlerFunction = NULL;
 static jmethodID keyboardKeyDownHandlerFunction = NULL;
+static jmethodID keyboardListChangedHandlerFunction = NULL;
 static jclass utilsClass = NULL;
 
 static HINSTANCE dllHandle = NULL;
@@ -35,6 +36,11 @@ LRESULT CALLBACK handleWindowMessages(HWND hWndMain, UINT message, WPARAM wParam
                 }
             }
 
+            return FALSE;
+        }
+
+        case WM_INPUT_DEVICE_CHANGE: {
+            (*global_env)->CallStaticVoidMethod(global_env, utilsClass, keyboardListChangedHandlerFunction);
             return FALSE;
         }
 
@@ -85,6 +91,7 @@ JNIEXPORT void JNICALL Java_visualizer_NativeUtils_initializeNativeUtils(JNIEnv*
 
     keyboardKeyUpHandlerFunction = (*env)->GetStaticMethodID(env, clazz, "onKeyboardKeyUp", "(IJ)V");
     keyboardKeyDownHandlerFunction = (*env)->GetStaticMethodID(env, clazz, "onKeyboardKeyDown", "(IJ)V");
+    keyboardListChangedHandlerFunction = (*env)->GetStaticMethodID(env, clazz, "onKeyboardListChange", "()V");
     utilsClass = clazz;
 
     char windowName[] = "nativeutils-window";
@@ -92,11 +99,9 @@ JNIEXPORT void JNICALL Java_visualizer_NativeUtils_initializeNativeUtils(JNIEnv*
     RegisterClass(&class);
 
     HWND window = CreateWindow(windowName, NULL, 0, 0, 0, 0, 0, HWND_MESSAGE, NULL, dllHandle, NULL);
-    RAWINPUTDEVICE keyboardRawDevice = { .usUsagePage = 1, .usUsage = 6, .hwndTarget = window, .dwFlags = RIDEV_INPUTSINK };
-    RAWINPUTDEVICE mouseRawDevice = { .usUsagePage = 1, .usUsage = 2, .hwndTarget = window, .dwFlags = RIDEV_INPUTSINK };
+    RAWINPUTDEVICE keyboardRawDevice = { .usUsagePage = 1, .usUsage = 6, .hwndTarget = window, .dwFlags = RIDEV_INPUTSINK | RIDEV_DEVNOTIFY };
 
     RegisterRawInputDevices(&keyboardRawDevice, 1, sizeof(keyboardRawDevice));
-    RegisterRawInputDevices(&mouseRawDevice, 1, sizeof(mouseRawDevice));
 
     MSG message;
     while(GetMessage(&message, NULL, 0, 0)) {
