@@ -57,7 +57,7 @@ JNIEXPORT jlongArray JNICALL Java_visualizer_NativeUtils_listAllKeyboardHandles(
     unsigned int deviceCount;
     GetRawInputDeviceList(NULL, &deviceCount, sizeof(RAWINPUTDEVICELIST));
 
-    PRAWINPUTDEVICELIST deviceList = malloc(sizeof(RAWINPUTDEVICELIST) * deviceCount);
+    PRAWINPUTDEVICELIST deviceList = _alloca(sizeof(RAWINPUTDEVICELIST) * deviceCount);
     GetRawInputDeviceList(deviceList, &deviceCount, sizeof(RAWINPUTDEVICELIST));
 
     int keyboardCount = 0;
@@ -67,7 +67,7 @@ JNIEXPORT jlongArray JNICALL Java_visualizer_NativeUtils_listAllKeyboardHandles(
         }
     }
 
-    HANDLE* handles = malloc(sizeof(long) * deviceCount);
+    HANDLE* handles = _alloca(sizeof(HANDLE) * keyboardCount);
     int handleIndex = 0;
     for(int i = 0; i < deviceCount; ++i) {
         if(deviceList[i].dwType == RIM_TYPEKEYBOARD) {
@@ -77,9 +77,6 @@ JNIEXPORT jlongArray JNICALL Java_visualizer_NativeUtils_listAllKeyboardHandles(
 
     jlongArray result = (*env)->NewLongArray(env, keyboardCount);
     (*env)->SetLongArrayRegion(env, result, 0, keyboardCount, handles);
-
-    free(deviceList);
-    free(handles);
 
     return result;
 }
@@ -122,9 +119,8 @@ JNIEXPORT void JNICALL Java_visualizer_NativeUtils_makeJFrameBehindClickable(JNI
     jint lock = surface->Lock(surface);
     JAWT_DrawingSurfaceInfo* surfaceInfo = surface->GetDrawingSurfaceInfo(surface);
     HWND nativeWindowHandle = ((JAWT_Win32DrawingSurfaceInfo*) surfaceInfo->platformInfo)->hwnd;
-    int originalFlags = GetWindowLong(nativeWindowHandle, GWL_EXSTYLE);
 
-    SetWindowLong(nativeWindowHandle, GWL_EXSTYLE, originalFlags | WS_EX_LAYERED | WS_EX_TRANSPARENT);
+    SetWindowLong(nativeWindowHandle, GWL_EXSTYLE, GetWindowLong(nativeWindowHandle, GWL_EXSTYLE) | WS_EX_LAYERED | WS_EX_TRANSPARENT);
 
     surface->Unlock(surface);
     awt.FreeDrawingSurface(surface);

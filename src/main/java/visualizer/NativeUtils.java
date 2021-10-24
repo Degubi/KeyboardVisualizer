@@ -36,7 +36,13 @@ public final class NativeUtils {
 
     // Called by NativeUtils.c on 'WM_INPUT_DEVICE_CHANGE'
     private static void onKeyboardListChange() {
-        keyboardListChangeListener.accept(listAllKeyboardHandles());
+        var keyboardList = listAllKeyboardHandles();
+
+        if(Main.LOGGING_ENABLED) {
+            System.out.println("Keyboard list change: " + Arrays.toString(keyboardList));
+        }
+
+        keyboardListChangeListener.accept(keyboardList);
     }
 
     // Called by NativeUtils.c on 'WM_INPUT' event on type 'RIM_TYPEKEYBOARD' with 'WM_KEYUP' and 'WM_SYSKEYUP' events
