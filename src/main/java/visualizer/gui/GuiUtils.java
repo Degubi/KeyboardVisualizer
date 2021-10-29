@@ -47,13 +47,12 @@ public final class GuiUtils {
         return handle.get();
     }
 
-    public static void showKeyboardHelper(boolean isResizable, KeyboardView keyboard) {
+    public static void showKeyboardVisualizer(boolean isResizable, KeyboardView keyboard) {
         var frame = new JFrame();
-        var keyboardHelperPanel = new KeyboardHelperScreen();
+        var keyboardHelperPanel = new KeyboardVisualizerScreen(keyboard);
 
         frame.setAlwaysOnTop(true);
         frame.setUndecorated(!isResizable);
-        frame.setResizable(false);
         frame.setBackground(isResizable ? new Color(128, 128, 128) : new Color(0, 0, 0, 0));
         frame.setContentPane(keyboardHelperPanel);
         frame.setBounds(keyboard.visualizerFrameXPosition, keyboard.visualizerFrameYPosition, keyboard.visualizerFrameWidth, keyboard.visualizerFrameHeight);
@@ -65,22 +64,22 @@ public final class GuiUtils {
             NativeUtils.makeJFrameBehindClickable(frame);
         }
 
-        keyboard.helperFrame = frame;
-        keyboard.helperScreen = keyboardHelperPanel;
+        keyboard.visualizerFrame = frame;
+        keyboard.visualizerScreen = keyboardHelperPanel;
     }
 
-    public static boolean hideKeyboardHelper(KeyboardView keyboard) {
-        if(keyboard.helperFrame != null) {
-            var helperFrameBounds = keyboard.helperFrame.getBounds();
+    public static boolean hideKeyboardVisualizer(KeyboardView keyboard) {
+        if(keyboard.visualizerFrame != null) {
+            var helperFrameBounds = keyboard.visualizerFrame.getBounds();
 
             keyboard.visualizerFrameXPosition = helperFrameBounds.x;
             keyboard.visualizerFrameYPosition = helperFrameBounds.y;
             keyboard.visualizerFrameWidth = helperFrameBounds.width;
             keyboard.visualizerFrameHeight = helperFrameBounds.height;
 
-            keyboard.helperFrame.dispose();
-            keyboard.helperFrame = null;
-            keyboard.helperScreen = null;
+            keyboard.visualizerFrame.dispose();
+            keyboard.visualizerFrame = null;
+            keyboard.visualizerScreen = null;
 
             return true;
         }

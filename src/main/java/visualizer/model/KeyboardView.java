@@ -1,6 +1,7 @@
 package visualizer.model;
 
 import com.fasterxml.jackson.annotation.*;
+import java.util.*;
 import javax.swing.*;
 import visualizer.*;
 import visualizer.gui.*;
@@ -14,10 +15,11 @@ public final class KeyboardView {
     public int visualizerFrameWidth;
     public int visualizerFrameHeight;
 
-    public transient JFrame helperFrame;
-    public transient KeyboardHelperScreen helperScreen;
+    public transient JFrame visualizerFrame;
+    public transient KeyboardVisualizerScreen visualizerScreen;
     public transient GlobalKeyboardInputListener keyDownListener;
     public transient GlobalKeyboardInputListener keyUpListener;
+    public final transient ArrayList<String> heldKeys = new ArrayList<>();
 
     @JsonCreator
     public KeyboardView(@JsonProperty("handle") long handle,

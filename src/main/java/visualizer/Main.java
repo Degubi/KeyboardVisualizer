@@ -37,9 +37,9 @@ public final class Main {
 
     private static Menu addNewKeyboardMenu(Menu keyboardsMenu, KeyboardView keyboard) {
         var keyboardMenu = new Menu(keyboard.name);
-        var resizableKeyboardHelperFrameCheckbox = newCheckboxMenuItem("Resizable Keyboard Helper", t -> handleKeyboardHelperResizeToggle(t, keyboard));
+        var resizableKeyboardHelperFrameCheckbox = newCheckboxMenuItem("Resizable Keyboard Visualizer", t -> handleKeyboardVisualizerResizeToggle(t, keyboard));
 
-        keyboardMenu.add(newCheckboxMenuItem("Toggle Keyboard Helper", t -> handleKeyboardHelperToggle(t, resizableKeyboardHelperFrameCheckbox, keyboard)));
+        keyboardMenu.add(newCheckboxMenuItem("Toggle Keyboard Visualizer", t -> handleKeyboardVisualizerToggle(t, resizableKeyboardHelperFrameCheckbox, keyboard)));
         keyboardMenu.add(resizableKeyboardHelperFrameCheckbox);
         keyboardMenu.add(newButtonMenuItem("Re-Pick Keyboard", e -> handleKeyboardRepickButtonClick(keyboard, keyboardMenu)));
 
@@ -84,23 +84,23 @@ public final class Main {
         }).start();
     }
 
-    private static void handleKeyboardHelperResizeToggle(boolean isResizable, KeyboardView keyboard) {
-        if(GuiUtils.hideKeyboardHelper(keyboard)) {
-            GuiUtils.showKeyboardHelper(isResizable, keyboard);
+    private static void handleKeyboardVisualizerResizeToggle(boolean isResizable, KeyboardView keyboard) {
+        if(GuiUtils.hideKeyboardVisualizer(keyboard)) {
+            GuiUtils.showKeyboardVisualizer(isResizable, keyboard);
         }
     }
 
-    private static void handleKeyboardHelperToggle(boolean isEnabled, CheckboxMenuItem resizableKeyboardHelperFrameCheckbox, KeyboardView keyboard) {
+    private static void handleKeyboardVisualizerToggle(boolean isEnabled, CheckboxMenuItem resizableKeyboardVisualizerFrameCheckbox, KeyboardView keyboard) {
         if(isEnabled) {
-            GuiUtils.showKeyboardHelper(resizableKeyboardHelperFrameCheckbox.getState(), keyboard);
+            GuiUtils.showKeyboardVisualizer(resizableKeyboardVisualizerFrameCheckbox.getState(), keyboard);
 
-            keyboard.keyDownListener = (k, h) -> handleKeyboardHelperKeyStateChanges(k, h, Color.RED, keyboard);
-            keyboard.keyUpListener = (k, h) -> handleKeyboardHelperKeyStateChanges(k, h, Color.GRAY, keyboard);
+            keyboard.keyDownListener = (k, h) -> handleKeyboardVisualizerKeyStateChanges(k, h, Color.RED, keyboard);
+            keyboard.keyUpListener = (k, h) -> handleKeyboardVisualizerKeyStateChanges(k, h, Color.GRAY, keyboard);
 
             NativeUtils.keyDownListeners.add(keyboard.keyDownListener);
             NativeUtils.keyUpListeners.add(keyboard.keyUpListener);
         }else{
-            GuiUtils.hideKeyboardHelper(keyboard);
+            GuiUtils.hideKeyboardVisualizer(keyboard);
 
             NativeUtils.keyDownListeners.remove(keyboard.keyDownListener);
             NativeUtils.keyUpListeners.remove(keyboard.keyUpListener);
@@ -111,13 +111,22 @@ public final class Main {
     }
 
 
-    private static void handleKeyboardHelperKeyStateChanges(int keyCode, long keyboardHandle, Color buttonColor, KeyboardView keyboard) {
+    private static void handleKeyboardVisualizerKeyStateChanges(int keyCode, long keyboardHandle, Color buttonColor, KeyboardView keyboard) {
         if(keyboard.handle == keyboardHandle) {
-            var keyIndex = KeyboardHelperScreen.getKeyIndex(keyCode);
+            var keyIndex = KeyUtils.getKeyColorIndex(keyCode);
+            var keyText = KeyUtils.getKeyboardKeyFromCode(keyCode);
 
             if(keyIndex != -1) {
-                keyboard.helperScreen.buttonColors[keyIndex] = buttonColor;
-                keyboard.helperScreen.repaint();
+                keyboard.visualizerScreen.buttonColors[keyIndex] = buttonColor;
+                keyboard.visualizerScreen.repaint();
+            }
+
+            if(buttonColor == Color.RED) {
+                if(!keyboard.heldKeys.contains(keyText)) {
+                    keyboard.heldKeys.add(keyText);
+                }
+            }else{
+                keyboard.heldKeys.remove(keyText);
             }
         }
     }
