@@ -5,6 +5,7 @@ import java.util.*;
 import javax.swing.*;
 import visualizer.*;
 import visualizer.gui.*;
+import visualizer.utils.*;
 
 public final class KeyboardView {
 

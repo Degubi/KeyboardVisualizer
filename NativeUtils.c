@@ -53,7 +53,7 @@ LRESULT CALLBACK handleWindowMessages(HWND hWndMain, UINT message, WPARAM wParam
     }
 }
 
-JNIEXPORT jlongArray JNICALL Java_visualizer_NativeUtils_listAllKeyboardHandles(JNIEnv* env, jclass clazz) {
+JNIEXPORT jlongArray JNICALL Java_visualizer_utils_NativeUtils_listAllKeyboardHandles(JNIEnv* env, jclass clazz) {
     unsigned int deviceCount;
     GetRawInputDeviceList(NULL, &deviceCount, sizeof(RAWINPUTDEVICELIST));
 
@@ -81,7 +81,7 @@ JNIEXPORT jlongArray JNICALL Java_visualizer_NativeUtils_listAllKeyboardHandles(
     return result;
 }
 
-JNIEXPORT void JNICALL Java_visualizer_NativeUtils_initializeNativeUtils(JNIEnv* env, jclass clazz) {
+JNIEXPORT void JNICALL Java_visualizer_utils_NativeUtils_initializeNativeUtils(JNIEnv* env, jclass clazz) {
     JavaVM* jvm;
     (*env)->GetJavaVM(env, &jvm);
     (*jvm)->AttachCurrentThread(jvm, &global_env, NULL);
@@ -111,7 +111,7 @@ JNIEXPORT void JNICALL Java_visualizer_NativeUtils_initializeNativeUtils(JNIEnv*
     }
 }
 
-JNIEXPORT void JNICALL Java_visualizer_NativeUtils_makeJFrameBehindClickable(JNIEnv* env, jclass clazz, jobject frameObject) {
+JNIEXPORT void JNICALL Java_visualizer_utils_NativeUtils_makeJFrameBehindClickable(JNIEnv* env, jclass clazz, jobject frameObject) {
     JAWT awt = { .version = JAWT_VERSION_9 };
     JAWT_GetAWT(env, &awt);
 

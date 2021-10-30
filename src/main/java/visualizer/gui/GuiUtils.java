@@ -6,6 +6,7 @@ import java.util.concurrent.atomic.*;
 import javax.swing.*;
 import visualizer.*;
 import visualizer.model.*;
+import visualizer.utils.*;
 
 public final class GuiUtils {
     public static final Image appIcon;
@@ -51,13 +52,20 @@ public final class GuiUtils {
         var frame = new JFrame();
         var keyboardHelperPanel = new KeyboardVisualizerScreen(keyboard);
 
+        if(isResizable) {
+            frame.addWindowListener(newWindowClosedListener(() -> {
+                hideKeyboardVisualizer(keyboard);
+                showKeyboardVisualizer(false, keyboard);
+            }));
+        }
+
         frame.setAlwaysOnTop(true);
         frame.setUndecorated(!isResizable);
         frame.setBackground(isResizable ? new Color(128, 128, 128) : new Color(0, 0, 0, 0));
         frame.setContentPane(keyboardHelperPanel);
         frame.setBounds(keyboard.visualizerFrameXPosition, keyboard.visualizerFrameYPosition, keyboard.visualizerFrameWidth, keyboard.visualizerFrameHeight);
         frame.setType(JFrame.Type.UTILITY);
-        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setVisible(true);
 
         if(!isResizable) {
@@ -85,5 +93,17 @@ public final class GuiUtils {
         }
 
         return false;
+    }
+
+    private static WindowListener newWindowClosedListener(Runnable onClose) {
+        return new WindowListener() {
+            @Override public void windowOpened(WindowEvent e) {}
+            @Override public void windowIconified(WindowEvent e) {}
+            @Override public void windowDeiconified(WindowEvent e) {}
+            @Override public void windowDeactivated(WindowEvent e) {}
+            @Override public void windowClosing(WindowEvent e) {}
+            @Override public void windowClosed(WindowEvent e) { onClose.run(); }
+            @Override public void windowActivated(WindowEvent e) {}
+        };
     }
 }

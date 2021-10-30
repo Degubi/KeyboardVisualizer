@@ -8,9 +8,9 @@ import java.util.stream.*;
 import javax.swing.*;
 import visualizer.gui.*;
 import visualizer.model.*;
+import visualizer.utils.*;
 
 public final class Main {
-    public static final boolean LOGGING_ENABLED = false;
 
     public static void main(String[] args) throws Exception {
         var popupMenu = new PopupMenu();
@@ -37,9 +37,9 @@ public final class Main {
 
     private static Menu addNewKeyboardMenu(Menu keyboardsMenu, KeyboardView keyboard) {
         var keyboardMenu = new Menu(keyboard.name);
-        var resizableKeyboardHelperFrameCheckbox = newCheckboxMenuItem("Resizable Keyboard Visualizer", t -> handleKeyboardVisualizerResizeToggle(t, keyboard));
+        var resizableKeyboardHelperFrameCheckbox = newButtonMenuItem("Resizable Keyboard Visualizer", e -> handleKeyboardVisualizerResizeToggle(keyboard));
 
-        keyboardMenu.add(newCheckboxMenuItem("Toggle Keyboard Visualizer", t -> handleKeyboardVisualizerToggle(t, resizableKeyboardHelperFrameCheckbox, keyboard)));
+        keyboardMenu.add(newCheckboxMenuItem("Toggle Keyboard Visualizer", t -> handleKeyboardVisualizerToggle(t, keyboard)));
         keyboardMenu.add(resizableKeyboardHelperFrameCheckbox);
         keyboardMenu.add(newButtonMenuItem("Re-Pick Keyboard", e -> handleKeyboardRepickButtonClick(keyboard, keyboardMenu)));
 
@@ -84,15 +84,15 @@ public final class Main {
         }).start();
     }
 
-    private static void handleKeyboardVisualizerResizeToggle(boolean isResizable, KeyboardView keyboard) {
+    private static void handleKeyboardVisualizerResizeToggle(KeyboardView keyboard) {
         if(GuiUtils.hideKeyboardVisualizer(keyboard)) {
-            GuiUtils.showKeyboardVisualizer(isResizable, keyboard);
+            GuiUtils.showKeyboardVisualizer(true, keyboard);
         }
     }
 
-    private static void handleKeyboardVisualizerToggle(boolean isEnabled, CheckboxMenuItem resizableKeyboardVisualizerFrameCheckbox, KeyboardView keyboard) {
+    private static void handleKeyboardVisualizerToggle(boolean isEnabled, KeyboardView keyboard) {
         if(isEnabled) {
-            GuiUtils.showKeyboardVisualizer(resizableKeyboardVisualizerFrameCheckbox.getState(), keyboard);
+            GuiUtils.showKeyboardVisualizer(false, keyboard);
 
             keyboard.keyDownListener = (k, h) -> handleKeyboardVisualizerKeyStateChanges(k, h, Color.RED, keyboard);
             keyboard.keyUpListener = (k, h) -> handleKeyboardVisualizerKeyStateChanges(k, h, Color.GRAY, keyboard);
@@ -118,15 +118,16 @@ public final class Main {
 
             if(keyIndex != -1) {
                 keyboard.visualizerScreen.buttonColors[keyIndex] = buttonColor;
-                keyboard.visualizerScreen.repaint();
-            }
 
-            if(buttonColor == Color.RED) {
-                if(!keyboard.heldKeys.contains(keyText)) {
-                    keyboard.heldKeys.add(keyText);
+                if(buttonColor == Color.RED) {
+                    if(!keyboard.heldKeys.contains(keyText)) {
+                        keyboard.heldKeys.add(keyText);
+                    }
+                }else{
+                    keyboard.heldKeys.remove(keyText);
                 }
-            }else{
-                keyboard.heldKeys.remove(keyText);
+
+                keyboard.visualizerScreen.repaint();
             }
         }
     }

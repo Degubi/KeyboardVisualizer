@@ -1,4 +1,4 @@
-package visualizer;
+package visualizer.utils;
 
 import java.util.*;
 import java.util.function.*;
@@ -13,6 +13,8 @@ public final class NativeUtils {
             System.exit(0);
         }
     }
+
+    private static final boolean ENABLE_INPUT_LOGGING = false;
 
     public static final GlobalKeyboardInputListener INACTIVE_LISTENER = (a, b) -> {};
 
@@ -38,7 +40,7 @@ public final class NativeUtils {
     private static void onKeyboardListChange() {
         var keyboardList = listAllKeyboardHandles();
 
-        if(Main.LOGGING_ENABLED) {
+        if(ENABLE_INPUT_LOGGING) {
             System.out.println("Keyboard list change: " + Arrays.toString(keyboardList));
         }
 
@@ -47,7 +49,7 @@ public final class NativeUtils {
 
     // Called by NativeUtils.c on 'WM_INPUT' event on type 'RIM_TYPEKEYBOARD' with 'WM_KEYUP' and 'WM_SYSKEYUP' events
     private static void onKeyboardKeyUp(int virtualKeyCode, long deviceHandle) {
-        if(Main.LOGGING_ENABLED) {
+        if(ENABLE_INPUT_LOGGING) {
             System.out.println("Keyboard button up interaction - device: " + deviceHandle + " - key: " + virtualKeyCode);
         }
 
@@ -60,7 +62,7 @@ public final class NativeUtils {
 
     // Called by NativeUtils.c on 'WM_INPUT' event on type 'RIM_TYPEKEYBOARD' with 'WM_KEYDOWN' and 'WM_SYSKEYDOWN' events
     private static void onKeyboardKeyDown(int virtualKeyCode, long deviceHandle) {
-        if(Main.LOGGING_ENABLED) {
+        if(ENABLE_INPUT_LOGGING) {
             System.out.println("Keyboard button down interaction - device: " + deviceHandle + " - key: " + virtualKeyCode);
         }
 

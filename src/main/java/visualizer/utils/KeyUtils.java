@@ -1,4 +1,4 @@
-package visualizer;
+package visualizer.utils;
 
 public final class KeyUtils {
 
@@ -38,7 +38,7 @@ public final class KeyUtils {
 
             case 93 -> "MENU";
             case 0  -> "UNDEFINED";
-            default -> throw new IllegalArgumentException("Unknown keycode: '" + keyCode + "'");
+            default -> null;
         };
     }
 
