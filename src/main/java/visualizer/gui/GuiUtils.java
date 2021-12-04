@@ -48,14 +48,17 @@ public final class GuiUtils {
         return handle.get();
     }
 
-    public static void showKeyboardVisualizer(boolean isResizable, KeyboardView keyboard) {
+    public static void showKeyboardVisualizer(CheckboxMenuItem resizeEnableDisableToggleItem, KeyboardView keyboard) {
         var frame = new JFrame();
         var keyboardHelperPanel = new KeyboardVisualizerScreen(keyboard);
+        var isResizable = resizeEnableDisableToggleItem.getState();
 
         if(isResizable) {
             frame.addWindowListener(newWindowClosedListener(() -> {
+                resizeEnableDisableToggleItem.setState(false);
+
                 hideKeyboardVisualizer(keyboard);
-                showKeyboardVisualizer(false, keyboard);
+                showKeyboardVisualizer(resizeEnableDisableToggleItem, keyboard);
             }));
         }
 

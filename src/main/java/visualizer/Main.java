@@ -3,7 +3,6 @@ package visualizer;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.*;
-import java.util.function.*;
 import java.util.stream.*;
 import javax.swing.*;
 import visualizer.gui.*;
@@ -37,21 +36,20 @@ public final class Main {
 
     private static Menu addNewKeyboardMenu(Menu keyboardsMenu, KeyboardView keyboard) {
         var keyboardMenu = new Menu(keyboard.name);
-        var resizableKeyboardHelperFrameCheckbox = newButtonMenuItem("Resizable Keyboard Visualizer", e -> handleKeyboardVisualizerResizeToggle(keyboard));
+        var enableDisableToggleItem = new CheckboxMenuItem("Toggle Visibility");
+        var resizeEnableDisableToggleItem = new CheckboxMenuItem("Toggle Resizability");
 
-        keyboardMenu.add(newCheckboxMenuItem("Toggle Keyboard Visualizer", t -> handleKeyboardVisualizerToggle(t, keyboard)));
-        keyboardMenu.add(resizableKeyboardHelperFrameCheckbox);
+        ItemListener listener = e -> handleKeyboardVisualizerToggle(enableDisableToggleItem.getState(), resizeEnableDisableToggleItem, keyboard);
+
+        enableDisableToggleItem.addItemListener(listener);
+        resizeEnableDisableToggleItem.addItemListener(listener);
+
+        keyboardMenu.add(enableDisableToggleItem);
+        keyboardMenu.add(resizeEnableDisableToggleItem);
         keyboardMenu.add(newButtonMenuItem("Re-Pick Keyboard", e -> handleKeyboardRepickButtonClick(keyboard, keyboardMenu)));
 
         keyboardsMenu.add(keyboardMenu);
         return keyboardsMenu;
-    }
-
-    @SuppressWarnings("boxing")
-    private static CheckboxMenuItem newCheckboxMenuItem(String text, Consumer<Boolean> onToggleHandler) {
-        var item = new CheckboxMenuItem(text);
-        item.addItemListener(e -> onToggleHandler.accept(item.getState()));
-        return item;
     }
 
 
@@ -84,15 +82,9 @@ public final class Main {
         }).start();
     }
 
-    private static void handleKeyboardVisualizerResizeToggle(KeyboardView keyboard) {
-        if(GuiUtils.hideKeyboardVisualizer(keyboard)) {
-            GuiUtils.showKeyboardVisualizer(true, keyboard);
-        }
-    }
-
-    private static void handleKeyboardVisualizerToggle(boolean isEnabled, KeyboardView keyboard) {
+    private static void handleKeyboardVisualizerToggle(boolean isEnabled, CheckboxMenuItem resizeEnableDisableToggleItem, KeyboardView keyboard) {
         if(isEnabled) {
-            GuiUtils.showKeyboardVisualizer(false, keyboard);
+            GuiUtils.showKeyboardVisualizer(resizeEnableDisableToggleItem, keyboard);
 
             keyboard.keyDownListener = (k, h) -> handleKeyboardVisualizerKeyStateChanges(k, h, Color.RED, keyboard);
             keyboard.keyUpListener = (k, h) -> handleKeyboardVisualizerKeyStateChanges(k, h, Color.GRAY, keyboard);

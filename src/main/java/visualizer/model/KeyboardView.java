@@ -3,7 +3,6 @@ package visualizer.model;
 import com.fasterxml.jackson.annotation.*;
 import java.util.*;
 import javax.swing.*;
-import visualizer.*;
 import visualizer.gui.*;
 import visualizer.utils.*;
 
