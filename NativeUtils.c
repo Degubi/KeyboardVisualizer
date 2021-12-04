@@ -7,14 +7,58 @@ static jmethodID keyboardKeyUpHandlerFunction = NULL;
 static jmethodID keyboardKeyDownHandlerFunction = NULL;
 static jmethodID keyboardListChangedHandlerFunction = NULL;
 static jclass utilsClass = NULL;
+static jclass stringClass = NULL;
 
 static HINSTANCE dllHandle = NULL;
+static HANDLE* globalKeyboardHandles = NULL;
+static char** globalKeybardIdentifiers = NULL;
+static int globalKeyboardCount = 0;
 
 BOOL APIENTRY DllMain(HINSTANCE _hInst, DWORD reason, LPVOID reserved) {
     if(reason == DLL_PROCESS_ATTACH) {
         dllHandle = _hInst;
     }
     return TRUE;
+}
+
+static void refreshGlobalKeyboards() {
+    free(globalKeyboardHandles);
+
+    for(int i = 0; i < globalKeyboardCount; ++i) {
+        free(globalKeybardIdentifiers[i]);
+    }
+
+    UINT deviceCount;
+    GetRawInputDeviceList(NULL, &deviceCount, sizeof(RAWINPUTDEVICELIST));
+
+    PRAWINPUTDEVICELIST deviceList = _alloca(sizeof(RAWINPUTDEVICELIST) * deviceCount);
+    GetRawInputDeviceList(deviceList, &deviceCount, sizeof(RAWINPUTDEVICELIST));
+
+    int keyboardCount = 0;
+    for(int i = 0; i < deviceCount; ++i) {
+        if(deviceList[i].dwType == RIM_TYPEKEYBOARD) {
+            ++keyboardCount;
+        }
+    }
+
+    globalKeyboardHandles = malloc(sizeof(HANDLE) * keyboardCount);
+    globalKeybardIdentifiers = malloc(sizeof(char*) * keyboardCount);
+    globalKeyboardCount = keyboardCount;
+
+    for(int i = 0, resultIndex = 0; i < deviceCount; ++i) {
+        if(deviceList[i].dwType == RIM_TYPEKEYBOARD) {
+            HANDLE deviceHandle = deviceList[i].hDevice;
+            UINT nameLength;
+            GetRawInputDeviceInfo(deviceHandle, RIDI_DEVICENAME, NULL, &nameLength);
+
+            globalKeyboardHandles[resultIndex] = deviceHandle;
+            globalKeybardIdentifiers[resultIndex] = malloc(nameLength);
+
+            GetRawInputDeviceInfo(deviceHandle, RIDI_DEVICENAME, globalKeybardIdentifiers[resultIndex], &nameLength);
+
+            ++resultIndex;
+        }
+    }
 }
 
 LRESULT CALLBACK handleWindowMessages(HWND hWndMain, UINT message, WPARAM wParam, LPARAM lParam) {
@@ -40,7 +84,14 @@ LRESULT CALLBACK handleWindowMessages(HWND hWndMain, UINT message, WPARAM wParam
         }
 
         case WM_INPUT_DEVICE_CHANGE: {
-            (*global_env)->CallStaticVoidMethod(global_env, utilsClass, keyboardListChangedHandlerFunction);
+            refreshGlobalKeyboards();
+
+            jobjectArray keyboardIdentifiers = (*global_env)->NewObjectArray(global_env, globalKeyboardCount, stringClass, NULL);
+            for(int i = 0; i < globalKeyboardCount; ++i) {
+                (*global_env)->SetObjectArrayElement(global_env, keyboardIdentifiers, i, (*global_env)->NewStringUTF(global_env, globalKeybardIdentifiers[i]));
+            }
+
+            (*global_env)->CallStaticVoidMethod(global_env, utilsClass, keyboardListChangedHandlerFunction, keyboardIdentifiers);
             return FALSE;
         }
 
@@ -53,32 +104,26 @@ LRESULT CALLBACK handleWindowMessages(HWND hWndMain, UINT message, WPARAM wParam
     }
 }
 
-JNIEXPORT jlongArray JNICALL Java_visualizer_utils_NativeUtils_listAllKeyboardHandles(JNIEnv* env, jclass clazz) {
-    unsigned int deviceCount;
-    GetRawInputDeviceList(NULL, &deviceCount, sizeof(RAWINPUTDEVICELIST));
+JNIEXPORT jlong JNICALL Java_visualizer_utils_NativeUtils_getKeyboardHandleFromIdentifier(JNIEnv* env, jclass clazz, jstring identifier) {
+    char* identifierChars = (*global_env)->GetStringUTFChars(global_env, identifier, JNI_FALSE);
 
-    PRAWINPUTDEVICELIST deviceList = _alloca(sizeof(RAWINPUTDEVICELIST) * deviceCount);
-    GetRawInputDeviceList(deviceList, &deviceCount, sizeof(RAWINPUTDEVICELIST));
-
-    int keyboardCount = 0;
-    for(int i = 0; i < deviceCount; ++i) {
-        if(deviceList[i].dwType == RIM_TYPEKEYBOARD) {
-            ++keyboardCount;
+    for(int i = 0; i < globalKeyboardCount; ++i) {
+        if(strcmp(identifierChars, globalKeybardIdentifiers[i]) == 0) {
+            return globalKeyboardHandles[i];
         }
     }
 
-    HANDLE* handles = _alloca(sizeof(HANDLE) * keyboardCount);
-    int handleIndex = 0;
-    for(int i = 0; i < deviceCount; ++i) {
-        if(deviceList[i].dwType == RIM_TYPEKEYBOARD) {
-            handles[handleIndex++] = deviceList[i].hDevice;
+    return -1;
+}
+
+JNIEXPORT jstring JNICALL Java_visualizer_utils_NativeUtils_getKeyboardIdentifierFromHandle(JNIEnv* env, jclass clazz, jlong handle) {
+    for(int i = 0; i < globalKeyboardCount; ++i) {
+        if(globalKeyboardHandles[i] == handle) {
+            return (*global_env)->NewStringUTF(global_env, globalKeybardIdentifiers[i]);
         }
     }
 
-    jlongArray result = (*env)->NewLongArray(env, keyboardCount);
-    (*env)->SetLongArrayRegion(env, result, 0, keyboardCount, handles);
-
-    return result;
+    return NULL;
 }
 
 JNIEXPORT void JNICALL Java_visualizer_utils_NativeUtils_initializeNativeUtils(JNIEnv* env, jclass clazz) {
@@ -88,7 +133,8 @@ JNIEXPORT void JNICALL Java_visualizer_utils_NativeUtils_initializeNativeUtils(J
 
     keyboardKeyUpHandlerFunction = (*env)->GetStaticMethodID(env, clazz, "onKeyboardKeyUp", "(IJ)V");
     keyboardKeyDownHandlerFunction = (*env)->GetStaticMethodID(env, clazz, "onKeyboardKeyDown", "(IJ)V");
-    keyboardListChangedHandlerFunction = (*env)->GetStaticMethodID(env, clazz, "onKeyboardListChange", "()V");
+    keyboardListChangedHandlerFunction = (*env)->GetStaticMethodID(env, clazz, "onKeyboardListChange", "([Ljava/lang/String;)V");
+    stringClass = (*env)->FindClass(env, "java/lang/String");
     utilsClass = clazz;
 
     char windowName[] = "nativeutils-window";

@@ -12,6 +12,8 @@ import visualizer.utils.*;
 public final class Main {
 
     public static void main(String[] args) throws Exception {
+        UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+
         var popupMenu = new PopupMenu();
         var keyboardsMenu = Settings.keyboards.stream()
                                     .reduce(new Menu("Keyboards"), Main::addNewKeyboardMenu, (k, l) -> l);
@@ -60,8 +62,8 @@ public final class Main {
             if(keyboardName != null && !keyboardName.isBlank()) {
                 var handle = GuiUtils.showKeyboardSelectionScreen();
 
-                if(handle != GuiUtils.CANCELED_KEYBOARD_HANDLE && Settings.keyboards.stream().noneMatch(k -> k.handle == handle)) {
-                    var keyboard = new KeyboardView(handle, keyboardName, 0, 0, 600, 400);
+                if(handle != GuiUtils.CANCELED_KEYBOARD_HANDLE) {
+                    var keyboard = new KeyboardView(NativeUtils.getKeyboardIdentifierFromHandle(handle), keyboardName, 0, 0, 600, 400);
 
                     Settings.keyboards.add(keyboard);
                     addNewKeyboardMenu(keyboardsMenu, keyboard);
@@ -74,8 +76,8 @@ public final class Main {
         new Thread(() -> {
             var handle = GuiUtils.showKeyboardSelectionScreen();
 
-            if(handle != GuiUtils.CANCELED_KEYBOARD_HANDLE && Settings.keyboards.stream().noneMatch(k -> k.handle == handle)) {
-                keyboard.handle = handle;
+            if(handle != GuiUtils.CANCELED_KEYBOARD_HANDLE) {
+                keyboard.keyboardIdentifier = NativeUtils.getKeyboardIdentifierFromHandle(handle);
                 keyboardMenu.getItem(0).setEnabled(true);
                 keyboardMenu.getItem(1).setEnabled(true);
             }
@@ -83,6 +85,13 @@ public final class Main {
     }
 
     private static void handleKeyboardVisualizerToggle(boolean isEnabled, CheckboxMenuItem resizeEnableDisableToggleItem, KeyboardView keyboard) {
+        GuiUtils.hideKeyboardVisualizer(keyboard);
+
+        NativeUtils.keyDownListeners.remove(keyboard.keyDownListener);
+        NativeUtils.keyUpListeners.remove(keyboard.keyUpListener);
+        keyboard.keyDownListener = null;
+        keyboard.keyUpListener = null;
+
         if(isEnabled) {
             GuiUtils.showKeyboardVisualizer(resizeEnableDisableToggleItem, keyboard);
 
@@ -91,20 +100,12 @@ public final class Main {
 
             NativeUtils.keyDownListeners.add(keyboard.keyDownListener);
             NativeUtils.keyUpListeners.add(keyboard.keyUpListener);
-        }else{
-            GuiUtils.hideKeyboardVisualizer(keyboard);
-
-            NativeUtils.keyDownListeners.remove(keyboard.keyDownListener);
-            NativeUtils.keyUpListeners.remove(keyboard.keyUpListener);
-
-            keyboard.keyDownListener = null;
-            keyboard.keyUpListener = null;
         }
     }
 
 
     private static void handleKeyboardVisualizerKeyStateChanges(int keyCode, long keyboardHandle, Color buttonColor, KeyboardView keyboard) {
-        if(keyboard.handle == keyboardHandle) {
+        if(NativeUtils.getKeyboardHandleFromIdentifier(keyboard.keyboardIdentifier) == keyboardHandle) {
             var keyIndex = KeyUtils.getKeyColorIndex(keyCode);
             var keyText = KeyUtils.getKeyboardKeyFromCode(keyCode);
 
@@ -124,19 +125,19 @@ public final class Main {
         }
     }
 
-    private static void handleKeyboardListChange(long[] keyboardHandles, Menu keyboardsMenu) {
+    private static void handleKeyboardListChange(String[] keyboardIdentifiers, Menu keyboardsMenu) {
         IntStream.range(0, keyboardsMenu.getItemCount())
                  .mapToObj(keyboardsMenu::getItem)
                  .forEach(m -> {
                      var keyboardMenu = (Menu) m;
                      var keyboardName = keyboardMenu.getLabel();
-                     var keyboardHandle = Settings.keyboards.stream()
-                                                  .filter(k -> k.name.equals(keyboardName))
-                                                  .mapToLong(k -> k.handle)
-                                                  .findFirst()
-                                                  .orElseThrow();
+                     var keyboardIdentifier = Settings.keyboards.stream()
+                                                      .filter(k -> k.name.equals(keyboardName))
+                                                      .map(k -> k.keyboardIdentifier)
+                                                      .findFirst()
+                                                      .orElseThrow();
 
-                     var isConnected = Arrays.stream(keyboardHandles).anyMatch(h -> h == keyboardHandle);
+                     var isConnected = Arrays.stream(keyboardIdentifiers).anyMatch(h -> h.equals(keyboardIdentifier));
 
                      keyboardMenu.getItem(0).setEnabled(isConnected);
                      keyboardMenu.getItem(1).setEnabled(isConnected);

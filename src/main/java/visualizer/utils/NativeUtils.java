@@ -14,6 +14,7 @@ public final class NativeUtils {
         }
     }
 
+    private static final boolean ENABLE_KEYBOARD_LIST_CHANGE_LOGGING = false;
     private static final boolean ENABLE_INPUT_LOGGING = false;
 
     public static final GlobalKeyboardInputListener INACTIVE_LISTENER = (a, b) -> {};
@@ -21,11 +22,12 @@ public final class NativeUtils {
     public static final ArrayList<GlobalKeyboardInputListener> keyDownListeners = new ArrayList<>();
     public static final ArrayList<GlobalKeyboardInputListener> keyUpListeners = new ArrayList<>();
     public static GlobalKeyboardInputListener keyboardSelectionListener = INACTIVE_LISTENER;
-    public static Consumer<long[]> keyboardListChangeListener = k -> {};
+    public static Consumer<String[]> keyboardListChangeListener = k -> {};
 
     public static native void initializeNativeUtils();  // Steals caller thread, called only once in main
     public static native void makeJFrameBehindClickable(JFrame frame);
-    public static native long[] listAllKeyboardHandles();
+    public static native long getKeyboardHandleFromIdentifier(String identifier);
+    public static native String getKeyboardIdentifierFromHandle(long handle);
 
     public static void sleepMs(long sleep) {
         try {
@@ -37,14 +39,18 @@ public final class NativeUtils {
 
 
     // Called by NativeUtils.c on 'WM_INPUT_DEVICE_CHANGE'
-    private static void onKeyboardListChange() {
-        var keyboardList = listAllKeyboardHandles();
+    private static void onKeyboardListChange(String[] keyboardIdentifiers) {
+        if(ENABLE_KEYBOARD_LIST_CHANGE_LOGGING) {
+            System.out.println("Keyboard list changed:");
 
-        if(ENABLE_INPUT_LOGGING) {
-            System.out.println("Keyboard list change: " + Arrays.toString(keyboardList));
+            for(var identifier : keyboardIdentifiers) {
+                System.out.println("  Handle: " + getKeyboardHandleFromIdentifier(identifier) + ", identifier: " + identifier);
+            }
+
+            System.out.println();
         }
 
-        keyboardListChangeListener.accept(keyboardList);
+        keyboardListChangeListener.accept(keyboardIdentifiers);
     }
 
     // Called by NativeUtils.c on 'WM_INPUT' event on type 'RIM_TYPEKEYBOARD' with 'WM_KEYUP' and 'WM_SYSKEYUP' events

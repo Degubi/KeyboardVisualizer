@@ -8,7 +8,7 @@ import visualizer.utils.*;
 
 public final class KeyboardView {
 
-    public long handle;
+    public String keyboardIdentifier;
     public final String name;
     public int visualizerFrameXPosition;
     public int visualizerFrameYPosition;
@@ -22,14 +22,14 @@ public final class KeyboardView {
     public final transient ArrayList<String> heldKeys = new ArrayList<>();
 
     @JsonCreator
-    public KeyboardView(@JsonProperty("handle") long handle,
+    public KeyboardView(@JsonProperty("keyboardIdentifier") String keyboardIdentifier,
                         @JsonProperty("name") String name,
                         @JsonProperty("visualizerFrameXPosition") int visualizerFrameXPosition,
                         @JsonProperty("visualizerFrameYPosition") int visualizerFrameYPosition,
                         @JsonProperty("visualizerFrameWidth") int visualizerFrameWidth,
                         @JsonProperty("visualizerFrameHeight") int visualizerFrameHeight) {
 
-        this.handle = handle;
+        this.keyboardIdentifier = keyboardIdentifier;
         this.name = name;
         this.visualizerFrameXPosition = visualizerFrameXPosition;
         this.visualizerFrameYPosition = visualizerFrameYPosition;

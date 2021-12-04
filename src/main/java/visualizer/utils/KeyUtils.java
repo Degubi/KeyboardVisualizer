@@ -19,7 +19,7 @@ public final class KeyUtils {
             case 188 -> ","; case 190 -> "."; case 189 -> "-"; case 226 -> "Í";
 
             case 9  -> "TAB";   case 16 -> "SHIFT";     case 17 -> "CTRL";  case 18 -> "ALT";
-            case 32 -> "SPACE"; case 8  -> "BACKSPACE"; case 13 -> "ENTER"; case 91 -> "WIN";
+            case 32 -> "SPACE"; case 8  -> "BACKSPACE"; case 10 -> "ENTER"; case 91 -> "WIN";
 
             case 38 -> "UP"; case 40 -> "DOWN"; case 37 -> "LEFT"; case 39 -> "RIGHT";
 
