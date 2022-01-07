@@ -33,7 +33,7 @@ public final class KeyUtils {
             case 111 -> "NP_/"; case 106 -> "NP_*";  case 109 -> "NP_-";
             case 103 -> "NP_7"; case 104 -> "NP_8";  case 105 -> "NP_9";
             case 100 -> "NP_4"; case 101 -> "NP_5";  case 102 -> "NP_6";
-            case 97  -> "NP_1"; case 98  ->  "NP_2"; case 99  -> "NP_3";
+            case 97  -> "NP_1"; case 98  -> "NP_2";  case 99  -> "NP_3";
             case 96  -> "NP_0"; case 110 -> "NP_.";  case 107 -> "NP_+";
 
             case 93 -> "MENU";

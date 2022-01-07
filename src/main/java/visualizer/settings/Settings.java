@@ -1,14 +1,13 @@
-package visualizer;
+package visualizer.settings;
 
 import com.fasterxml.jackson.core.type.*;
 import com.fasterxml.jackson.databind.*;
 import java.io.*;
 import java.nio.file.*;
 import java.util.*;
-import visualizer.model.*;
 
 public final class Settings {
-    private static final ObjectMapper json = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    private static final ObjectMapper json = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).configure(SerializationFeature.INDENT_OUTPUT, true);
     private static final String KEYBOARDS_SETTING = "keyboards";
 
     public static final ArrayList<KeyboardView> keyboards;

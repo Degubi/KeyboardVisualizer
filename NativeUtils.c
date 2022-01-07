@@ -105,7 +105,7 @@ LRESULT CALLBACK handleWindowMessages(HWND hWndMain, UINT message, WPARAM wParam
 }
 
 JNIEXPORT jlong JNICALL Java_visualizer_utils_NativeUtils_getKeyboardHandleFromIdentifier(JNIEnv* env, jclass clazz, jstring identifier) {
-    char* identifierChars = (*global_env)->GetStringUTFChars(global_env, identifier, JNI_FALSE);
+    char* identifierChars = (*env)->GetStringUTFChars(env, identifier, JNI_FALSE);
 
     for(int i = 0; i < globalKeyboardCount; ++i) {
         if(strcmp(identifierChars, globalKeybardIdentifiers[i]) == 0) {
@@ -119,7 +119,7 @@ JNIEXPORT jlong JNICALL Java_visualizer_utils_NativeUtils_getKeyboardHandleFromI
 JNIEXPORT jstring JNICALL Java_visualizer_utils_NativeUtils_getKeyboardIdentifierFromHandle(JNIEnv* env, jclass clazz, jlong handle) {
     for(int i = 0; i < globalKeyboardCount; ++i) {
         if(globalKeyboardHandles[i] == handle) {
-            return (*global_env)->NewStringUTF(global_env, globalKeybardIdentifiers[i]);
+            return (*env)->NewStringUTF(env, globalKeybardIdentifiers[i]);
         }
     }
 

@@ -3,7 +3,8 @@ package visualizer.gui;
 import java.awt.*;
 import java.util.*;
 import javax.swing.*;
-import visualizer.model.*;
+import visualizer.settings.*;
+import visualizer.utils.*;
 
 public final class KeyboardVisualizerScreen extends JPanel {
     private static final Font labelFont = new Font("Arial", Font.BOLD, 14);
@@ -28,6 +29,57 @@ public final class KeyboardVisualizerScreen extends JPanel {
 
         Arrays.fill(buttonColors, Color.GRAY);
         setOpaque(false);
+    }
+
+
+    public static void show(CheckboxMenuItem resizeEnableDisableToggleItem, KeyboardView keyboard) {
+        var frame = new JFrame();
+        var keyboardHelperPanel = new KeyboardVisualizerScreen(keyboard);
+        var isResizable = resizeEnableDisableToggleItem.getState();
+
+        if(isResizable) {
+            frame.addWindowListener(GuiUtils.newWindowClosedListener(() -> {
+                resizeEnableDisableToggleItem.setState(false);
+
+                hide(keyboard);
+                show(resizeEnableDisableToggleItem, keyboard);
+            }));
+        }
+
+        frame.setAlwaysOnTop(true);
+        frame.setUndecorated(!isResizable);
+        frame.setBackground(isResizable ? new Color(128, 128, 128) : new Color(0, 0, 0, 0));
+        frame.setContentPane(keyboardHelperPanel);
+        frame.setBounds(keyboard.visualizerFrameXPosition, keyboard.visualizerFrameYPosition, keyboard.visualizerFrameWidth, keyboard.visualizerFrameHeight);
+        frame.setType(JFrame.Type.UTILITY);
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.setVisible(true);
+
+        if(!isResizable) {
+            NativeUtils.makeJFrameBehindClickable(frame);
+        }
+
+        keyboard.visualizerFrame = frame;
+        keyboard.visualizerScreen = keyboardHelperPanel;
+    }
+
+    public static boolean hide(KeyboardView keyboard) {
+        if(keyboard.visualizerFrame != null) {
+            var helperFrameBounds = keyboard.visualizerFrame.getBounds();
+
+            keyboard.visualizerFrameXPosition = helperFrameBounds.x;
+            keyboard.visualizerFrameYPosition = helperFrameBounds.y;
+            keyboard.visualizerFrameWidth = helperFrameBounds.width;
+            keyboard.visualizerFrameHeight = helperFrameBounds.height;
+
+            keyboard.visualizerFrame.dispose();
+            keyboard.visualizerFrame = null;
+            keyboard.visualizerScreen = null;
+
+            return true;
+        }
+
+        return false;
     }
 
 

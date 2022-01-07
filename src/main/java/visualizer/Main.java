@@ -6,7 +6,7 @@ import java.util.*;
 import java.util.stream.*;
 import javax.swing.*;
 import visualizer.gui.*;
-import visualizer.model.*;
+import visualizer.settings.*;
 import visualizer.utils.*;
 
 public final class Main {
@@ -16,7 +16,7 @@ public final class Main {
 
         var popupMenu = new PopupMenu();
         var keyboardsMenu = Settings.keyboards.stream()
-                                    .reduce(new Menu("Keyboards"), Main::addNewKeyboardMenu, (k, l) -> l);
+                                    .reduce(new Menu("Keyboards"), Main::createAndAddNewKeyboardMenu, (k, l) -> l);
 
         popupMenu.add(keyboardsMenu);
         popupMenu.add(newButtonMenuItem("Add Keyboard", e -> handleAddKeyboardButtonClick(keyboardsMenu)));
@@ -36,7 +36,7 @@ public final class Main {
         return item;
     }
 
-    private static Menu addNewKeyboardMenu(Menu keyboardsMenu, KeyboardView keyboard) {
+    private static Menu createAndAddNewKeyboardMenu(Menu keyboardsMenu, KeyboardView keyboard) {
         var keyboardMenu = new Menu(keyboard.name);
         var enableDisableToggleItem = new CheckboxMenuItem("Toggle Visibility");
         var resizeEnableDisableToggleItem = new CheckboxMenuItem("Toggle Resizability");
@@ -60,13 +60,13 @@ public final class Main {
             var keyboardName = JOptionPane.showInputDialog("Enter keyboard name!");
 
             if(keyboardName != null && !keyboardName.isBlank()) {
-                var handle = GuiUtils.showKeyboardSelectionScreen();
+                var handle = KeyboardSelectionScreen.showAndGet();
 
-                if(handle != GuiUtils.CANCELED_KEYBOARD_HANDLE) {
+                if(handle != KeyboardSelectionScreen.CANCELED_KEYBOARD_HANDLE) {
                     var keyboard = new KeyboardView(NativeUtils.getKeyboardIdentifierFromHandle(handle), keyboardName, 0, 0, 600, 400);
 
                     Settings.keyboards.add(keyboard);
-                    addNewKeyboardMenu(keyboardsMenu, keyboard);
+                    createAndAddNewKeyboardMenu(keyboardsMenu, keyboard);
                 }
             }
         }).start();
@@ -74,9 +74,9 @@ public final class Main {
 
     private static void handleKeyboardRepickButtonClick(KeyboardView keyboard, Menu keyboardMenu) {
         new Thread(() -> {
-            var handle = GuiUtils.showKeyboardSelectionScreen();
+            var handle = KeyboardSelectionScreen.showAndGet();
 
-            if(handle != GuiUtils.CANCELED_KEYBOARD_HANDLE) {
+            if(handle != KeyboardSelectionScreen.CANCELED_KEYBOARD_HANDLE) {
                 keyboard.keyboardIdentifier = NativeUtils.getKeyboardIdentifierFromHandle(handle);
                 keyboardMenu.getItem(0).setEnabled(true);
                 keyboardMenu.getItem(1).setEnabled(true);
@@ -85,7 +85,7 @@ public final class Main {
     }
 
     private static void handleKeyboardVisualizerToggle(boolean isEnabled, CheckboxMenuItem resizeEnableDisableToggleItem, KeyboardView keyboard) {
-        GuiUtils.hideKeyboardVisualizer(keyboard);
+        KeyboardVisualizerScreen.hide(keyboard);
 
         NativeUtils.keyDownListeners.remove(keyboard.keyDownListener);
         NativeUtils.keyUpListeners.remove(keyboard.keyUpListener);
@@ -93,7 +93,7 @@ public final class Main {
         keyboard.keyUpListener = null;
 
         if(isEnabled) {
-            GuiUtils.showKeyboardVisualizer(resizeEnableDisableToggleItem, keyboard);
+            KeyboardVisualizerScreen.show(resizeEnableDisableToggleItem, keyboard);
 
             keyboard.keyDownListener = (k, h) -> handleKeyboardVisualizerKeyStateChanges(k, h, Color.RED, keyboard);
             keyboard.keyUpListener = (k, h) -> handleKeyboardVisualizerKeyStateChanges(k, h, Color.GRAY, keyboard);
